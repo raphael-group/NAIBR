@@ -1,0 +1,10 @@
+{
+"MIN_MAPQ" : 40,
+"BAM_FILE" : "/ltmp/relyanow/10X/NA12878/Apr9/NA12878_WGS_210_phased_possorted_bam.bam",
+"DIR" : "/research/compbio/users/relyanow/Research/10x_svcalling/LRSV/May8",
+"d" : 10000,
+"MIN_DISCS" : 0,
+"MIN_SPLIT" : 5,
+"min_sv" : 5000,
+"NUM_CORES" : 1
+}
