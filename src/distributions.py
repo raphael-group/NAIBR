@@ -64,6 +64,7 @@ def plot_distribution(p,distr,xlab,ylab,title):
 
 def linked_reads(reads,chrom):
 	reads.sort(key = lambda x: x[0])
+
 	curr_LR = [0,0,0,0]
 	LRs = []
 	for start,end,hap,mapq in reads:
@@ -131,8 +132,7 @@ def get_rate_distr(LRs):
 	rate = [x[3]/float(x[2]-x[1]) for x in LRs]
 	rate.sort()
 	rate = rate[len(rate)/10:len(rate)/10*9]
-	#print np.mean(rate)
-	#rate = random.sample(rate,100000)
+
 	alpha,loc,beta = scipy.stats.gamma.fit(rate)
 	p = scipy.stats.gamma(alpha,loc,beta).cdf
 	pp = lambda x: max(1e-20,float(p([max(x,1e-6)])[0]-p([max(x,1e-6)-1e-6])[0]))

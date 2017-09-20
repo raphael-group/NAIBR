@@ -210,7 +210,7 @@ def swap(a,b):
 	return a,b
 
 def is_proper_chrom(chrom):
-	return 'chr' in chrom and 'Un' not in chrom and 'random' not in chrom
+	return 'Un' not in chrom and 'random' not in chrom
 
 def get_orient(read):
 	a = ''

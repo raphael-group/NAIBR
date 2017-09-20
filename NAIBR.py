@@ -25,9 +25,11 @@ def run_NAIBR(chrom):
 	automatically identify candidate novel adjacencies
 	'''
 	reads_by_LR,LRs_by_pos,discs_by_barcode,discs,interchrom_discs,coverage = make_barcodeDict(chrom)
-	cands,p_len,p_rate = get_candidates(discs,reads_by_LR)
-	print 'ranking',len(cands),'candidates from',chrom
-	scores = predict_NAs(reads_by_LR,LRs_by_pos,discs_by_barcode,cands,p_len,p_rate,coverage,False)
+	scores = 0
+	if len(reads_by_LR) > 0:
+		cands,p_len,p_rate = get_candidates(discs,reads_by_LR)
+		print 'ranking',len(cands),'candidates from',chrom
+		scores = predict_NAs(reads_by_LR,LRs_by_pos,discs_by_barcode,cands,p_len,p_rate,coverage,False)
 	return reads_by_LR,LRs_by_pos,discs_by_barcode,interchrom_discs,coverage,scores
 
 def main():
@@ -46,7 +48,7 @@ def main():
 		reads = pysam.AlignmentFile(BAM_FILE,"rb")
 		chroms = reads.references
 		chroms = [x for x in chroms if is_proper_chrom(x)]
-		data = parallel_execute(run_NAIBR,['chr21'])
+		data = parallel_execute(run_NAIBR,chroms)
 		reads_by_LR = collections.defaultdict(list)
 		LRs_by_pos = collections.defaultdict(list)
 		discs_by_barcode = collections.defaultdict(list)
@@ -54,12 +56,13 @@ def main():
 		coverage = []
 		scores = []
 		for reads_by_LR_chrom,LRs_by_pos_chrom,discs_by_barcode_chrom,discs_chrom,cov_chrom,scores_chrom in data:
-			reads_by_LR.update(reads_by_LR_chrom)
-			LRs_by_pos.update(LRs_by_pos_chrom)
-			discs_by_barcode.update(discs_by_barcode_chrom)
-			discs.update(discs_chrom)
-			coverage.append(cov_chrom)
-			scores += scores_chrom
+			if scores_chrom:
+				reads_by_LR.update(reads_by_LR_chrom)
+				LRs_by_pos.update(LRs_by_pos_chrom)
+				discs_by_barcode.update(discs_by_barcode_chrom)
+				discs.update(discs_chrom)
+				coverage.append(cov_chrom)
+				scores += scores_chrom
 		cands,p_len,p_rate = get_candidates(discs,reads_by_LR)
 		print 'ranking',len(cands),'interchromosomal candidates'
 		scores += predict_NAs(reads_by_LR,LRs_by_pos,discs_by_barcode,cands,p_len,p_rate,np.mean(coverage),True)

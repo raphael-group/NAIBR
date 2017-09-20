@@ -29,6 +29,7 @@ def make_barcodeDict(chrom):
 	Returns: dict barcoded reads, dict of reads overlapping ref positions, 
 	discordant reads, candidate NAs, total coverage
 	'''
+	print chrom
 	cov = 0
 	global discs
 	global reads_by_barcode
