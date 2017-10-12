@@ -79,7 +79,10 @@ def estimate_lmin_lmax():
 				if read.reference_start > mate_pairs[read.query_name][0]:
 					dist = read.reference_start-mate_pairs[read.query_name][1]
 				else:
-					dist = mate_pairs[read.query_name][0]-read.reference_end
+					try:
+						dist = mate_pairs[read.query_name][0]-read.reference_end
+					except:
+						pass
 				if abs(dist) < 2000:
 					length.append(read.query_length)
 					ls.append(dist)
