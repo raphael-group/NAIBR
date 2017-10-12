@@ -29,7 +29,7 @@ def make_barcodeDict(chrom):
 	Returns: dict barcoded reads, dict of reads overlapping ref positions, 
 	discordant reads, candidate NAs, total coverage
 	'''
-	print chrom
+	print 'getting candidates for chrom %s'%chrom
 	cov = 0
 	global discs
 	global reads_by_barcode
@@ -148,6 +148,8 @@ def get_candidates(discs,reads_by_LR):
 	candidates = []
 	r = lmax
 	p_len,p_rate,barcode_overlap = get_distributions(reads_by_LR)
+	if p_len == None:
+		return None,None,None
 	num_cands = 0
 	for key,items in discs.iteritems():
 		orient = key[4]
@@ -164,7 +166,7 @@ def get_candidates(discs,reads_by_LR):
 				already_appended = sum([1 for x in candidates if x.i == cand.i and x.j == cand.j])
 				if not already_appended:
 					num_cands += 1
-					candidates.append(cand)			
+					candidates.append(cand)
 	return candidates,p_len,p_rate
 
 

@@ -15,8 +15,11 @@ def run_NAIBR_user(cand):
 	'''
 	use user input candidate novel adjacencies
 	'''
+	scores = 0
 	reads_by_LR,LRs_by_pos,discs_by_barcode,cands,coverage = make_barcodeDict_user(cand)
 	p_len,p_rate,overlap = get_distributions(reads_by_LR)
+	if p_len == None:
+		return scores
 	scores = predict_NAs(reads_by_LR,LRs_by_pos,discs_by_barcode,cands,p_len,p_rate,coverage,False)
 	return scores
 
@@ -28,8 +31,13 @@ def run_NAIBR(chrom):
 	scores = 0
 	if len(reads_by_LR) > 0:
 		cands,p_len,p_rate = get_candidates(discs,reads_by_LR)
+		if cands == None:
+			print 'No candidates from',chrom
+			return reads_by_LR,LRs_by_pos,discs_by_barcode,interchrom_discs,coverage,scores
 		print 'ranking',len(cands),'candidates from',chrom
 		scores = predict_NAs(reads_by_LR,LRs_by_pos,discs_by_barcode,cands,p_len,p_rate,coverage,False)
+	else:
+		print 'No candidates from',chrom
 	return reads_by_LR,LRs_by_pos,discs_by_barcode,interchrom_discs,coverage,scores
 
 def main():
@@ -64,8 +72,11 @@ def main():
 				coverage.append(cov_chrom)
 				scores += scores_chrom
 		cands,p_len,p_rate = get_candidates(discs,reads_by_LR)
-		print 'ranking',len(cands),'interchromosomal candidates'
-		scores += predict_NAs(reads_by_LR,LRs_by_pos,discs_by_barcode,cands,p_len,p_rate,np.mean(coverage),True)
+		if cands != None:
+			print 'ranking',len(cands),'interchromosomal candidates'
+			scores += predict_NAs(reads_by_LR,LRs_by_pos,discs_by_barcode,cands,p_len,p_rate,np.mean(coverage),True)
+		else:
+			print 'No interchromosomal candidates'
 		write_scores(scores)
 
 

@@ -210,7 +210,7 @@ def swap(a,b):
 	return a,b
 
 def is_proper_chrom(chrom):
-	return 'Un' not in chrom and 'random' not in chrom
+	return 'Un' not in chrom and 'random' not in chrom and 'hs37d5' not in chrom
 
 def get_orient(read):
 	a = ''
@@ -378,6 +378,7 @@ def parallel_execute(function,input_list):
 	if NUM_THREADS != 1:
 		pool = mp.Pool(NUM_THREADS,maxtasksperchild=1)
 		map_fn = pool.map
+		print 'running on %s threads'%str(NUM_THREADS)
 		data = map_fn(function,input_list)
 		pool.close()
 		pool.join()

@@ -108,6 +108,9 @@ def get_distributions(reads_by_LR):
 	for barcode,barcode_LRS in LRs_by_barcode.iteritems():
 		if len(barcode_LRS) > 1:
 			get_overlap(barcode_LRS)
+	
+	if len(LRs) == 0:
+		return None,None,None
 	p_rate = get_rate_distr(LRs)
 	p_len = get_length_distr(LRs)	
 	return p_len,p_rate,barcode_overlap
