@@ -1,6 +1,7 @@
 ## Overview
 
-NAIBR (Novel Adjacency Identification with Barcoded Reads) identifies novel adjacencies created by structural variation events such as deletions, duplications, inversions, and complex rearrangements using linked-read whole-genome sequencing data produced by 10X Genomics. 
+NAIBR (Novel Adjacency Identification with Barcoded Reads) identifies novel adjacencies created by structural variation events such as deletions, duplications, inversions, and complex rearrangements using linked-read whole-genome sequencing data produced by 10X Genomics. Please refer to the [publication](https://doi.org/10.1093/bioinformatics/btx712) for details about the method.
+
 
 NAIBR takes as in put a BAM file produced by 10X Genomic's Long Ranger pipeline and outputs a BEDPE file containing predicted novel adjacencies and a likelihood score for each adjacency.
 
@@ -44,6 +45,15 @@ python NAIBR.py example/example.config
 
 will produce the file 'example/NAIBR_SVs.bedpe'.
 
-
+### Citing NAIBR
+Elyanow, Rebecca, Hsin-Ta Wu, and Benjamin J. Raphael. "Identifying structural variants using linked-read sequencing data." Bioinformatics (2017).
+```
+@article{elyanow2017identifying,
+  title={Identifying structural variants using linked-read sequencing data},
+  author={Elyanow, Rebecca and Wu, Hsin-Ta and Raphael, Benjamin J},
+  journal={Bioinformatics},
+  year={2017}
+}
+```
 
 

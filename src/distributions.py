@@ -1,3 +1,5 @@
+from __future__ import print_function,division
+from future.utils import iteritems
 import os,sys,pysam,collections,time,gc,random,itertools
 from utils import *
 import numpy as np
@@ -36,7 +38,7 @@ class negBin(object):
 			va = np.var(data)
 			r = (av*av)/(va-av)
 			p = (va-av)/(va)
-		sm = np.sum(data)/len(data)
+		sm = np.sum(data)/(len(data))
 		x = optimize.fsolve(self.mleFun, np.array([p, r]), args=(data, sm))
 		self.p = x[0]
 		self.r = x[1]
@@ -87,8 +89,8 @@ def get_overlap(barcode_LRs):
 			LR1,LR2 = [LR2,LR1]
 		chr1,start1,end1,count1 = LR1
 		chr2,start2,end2,count2 = LR2
-		index1 = set([start1/d*d,end1/d*d])
-		index2 = set([start2/d*d,end2/d*d])
+		index1 = set([int(start1/d)*d,int(end1/d)*d])
+		index2 = set([int(start2/d)*d,int(end2/d)*d])
 		for id1 in index1:
 			for id2 in index2:
 				barcode_overlap[(chr1,id1,chr2,id2)] += 1
@@ -100,17 +102,18 @@ def get_distributions(reads_by_LR):
 	global barcode_overlap,LRs_by_barcode
 	LRs_by_barcode = collections.defaultdict(list)
 	barcode_overlap = collections.defaultdict(int)
-	for key,reads in reads_by_LR.iteritems():
+	for key,reads in iteritems(reads_by_LR):
 		chrom,barcode = key
 		barcode_LRS = linked_reads(reads,chrom)
 		LRs += barcode_LRS
 		LRs_by_barcode[barcode] += barcode_LRS
-	for barcode,barcode_LRS in LRs_by_barcode.iteritems():
+	for barcode,barcode_LRS in iteritems(LRs_by_barcode):
 		if len(barcode_LRS) > 1:
 			get_overlap(barcode_LRS)
-	
 	if len(LRs) == 0:
 		return None,None,None
+	elif len(LRs) < 100:
+		print('WARNING: Few linked-reads detected')
 	p_rate = get_rate_distr(LRs)
 	p_len = get_length_distr(LRs)	
 	return p_len,p_rate,barcode_overlap
@@ -118,9 +121,8 @@ def get_distributions(reads_by_LR):
 def get_length_distr(LRs):
 	lengths = [x[2]-x[1] for x in LRs]
 	lengths.sort()
-	lengths = lengths[len(lengths)/10:len(lengths)/10*9]
-	#print np.mean(lengths)
-	#lengths = random.sample(lengths,100000)
+	if len(lengths) > 10:
+		lengths = lengths[int(len(lengths)/10):int(len(lengths)/10*9)]
 	b = negBin()
 	b.fit(lengths)
 	p = b.pdf
@@ -134,8 +136,8 @@ def get_length_distr(LRs):
 def get_rate_distr(LRs):
 	rate = [x[3]/float(x[2]-x[1]) for x in LRs]
 	rate.sort()
-	rate = rate[len(rate)/10:len(rate)/10*9]
-
+	if len(rate) > 10:
+		rate = rate[int(len(rate)/10):int(len(rate)/10*9)]
 	alpha,loc,beta = scipy.stats.gamma.fit(rate)
 	p = scipy.stats.gamma(alpha,loc,beta).cdf
 	pp = lambda x: max(1e-20,float(p([max(x,1e-6)])[0]-p([max(x,1e-6)-1e-6])[0]))

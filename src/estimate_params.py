@@ -1,3 +1,4 @@
+from __future__ import print_function,division
 import os,sys,subprocess,pysam,collections,time,gc
 import multiprocessing as mp
 from utils import *
@@ -10,7 +11,7 @@ def estimate_lmin_lmax():
 	ls = []
 	num = 0
 	for i,chrm in enumerate(reads.references):
-		start = reads.lengths[i]/2
+		start = int(reads.lengths[i]/2)
 		end = start+1000000
 		for read in reads.fetch(chrm,start,end):
 			num += 1
@@ -49,7 +50,7 @@ def estimate_delta(read_list):
 			prev_end = end
 	mean = np.mean(gaps)
 	gaps.sort()
-	d = max(1000,gaps[len(gaps)-int((len(gaps)/100)*5)]/1000*1000)
+	d = max(1000,int(gaps[len(gaps)-int((len(gaps)/100)*5)]/1000)*1000)
 	return d
 
 

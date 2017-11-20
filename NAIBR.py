@@ -1,3 +1,4 @@
+from __future__ import print_function,division
 import os,sys,time,json,pysam,collections
 sys.path.insert(0, 'src')
 if len(sys.argv) < 2:
@@ -8,7 +9,6 @@ from global_vars import *
 from estimate_params import estimate_lmin_lmax
 from utils import *
 from rank import *
-
 
 
 def run_NAIBR_user(cand):
@@ -32,18 +32,18 @@ def run_NAIBR(chrom):
 	if len(reads_by_LR) > 0:
 		cands,p_len,p_rate = get_candidates(discs,reads_by_LR)
 		if cands == None:
-			print 'No candidates from',chrom
+			print('No candidates from %s'%chrom)
 			return reads_by_LR,LRs_by_pos,discs_by_barcode,interchrom_discs,coverage,scores
-		print 'ranking',len(cands),'candidates from',chrom
+		print('ranking %i candidates from %s'%(len(cands),chrom))
 		scores = predict_NAs(reads_by_LR,LRs_by_pos,discs_by_barcode,cands,p_len,p_rate,coverage,False)
 	else:
-		print 'No candidates from',chrom
+		print('No candidates from %s'%chrom)
 	return reads_by_LR,LRs_by_pos,discs_by_barcode,interchrom_discs,coverage,scores
 
 def main():
 	starttime = time.time()
 	if len(candidates) > 0:
-		print 'user defined candidates'
+		print('user defined candidates')
 		with open(candidates) as f:
 			cands = f.read().split('\n')
 			cands = [x.split('\t') for x in cands]
@@ -73,15 +73,15 @@ def main():
 				scores += scores_chrom
 		cands,p_len,p_rate = get_candidates(discs,reads_by_LR)
 		if cands != None:
-			print 'ranking',len(cands),'interchromosomal candidates'
+			print('ranking %i interchromosomal candidates'%len(cands))
 			scores += predict_NAs(reads_by_LR,LRs_by_pos,discs_by_barcode,cands,p_len,p_rate,np.mean(coverage),True)
 		else:
-			print 'No interchromosomal candidates'
+			print('No interchromosomal candidates')
 		write_scores(scores)
 
 
 
-	print 'Finished in',(time.time()-starttime)/60.0,'minutes'
+	print('Finished in',(time.time()-starttime)/60.0,'minutes')
 	return
 
 if __name__ == "__main__":

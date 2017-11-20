@@ -1,3 +1,5 @@
+from __future__ import print_function,division
+from future.utils import iteritems
 from global_vars import *
 import math,mpmath,copy
 import numpy as np
@@ -95,7 +97,7 @@ class LinkedRead:
 
 class PERead:
 	__slots__ = ['barcode', 'chrm','orient','start','disc','mapq','end','hap','nextchrm',\
-	'nextstart','nextend','nexthap','nextmapq']
+	'nextstart','nextend','nexthap','nextmapq','i','j']
 	def __init__(self,read):
 		read_hap = get_hap(read)
 		r = [read.reference_name.strip('chr'),read.reference_start,read.reference_end,\
@@ -238,7 +240,8 @@ def NB(k,m,r):
 	return mpmath.gamma(k + r)/(mpmath.gamma(k+1)*mpmath.gamma(r))*np.power(m/(r+m),k)*np.power(r/(r+m),r)
 
 def Pois(k,lam):
-	return (np.power(lam,k)*math.exp(-lam))/mpmath.gamma(k+1)
+	return (np.power(lam,k)*math.exp(-lam))/(mpmath.gamma(k+1))
+
 def get_hap(r):
 	if r.has_tag('HP'):
 		return r.get_tag('HP')
@@ -305,7 +308,7 @@ def get_orientation(read,mate):
 			return ['++',read.reference_end,mate.reference_end]
 
 def rnd(num):
-	return num/R*R
+	return int(num/R)*R
 
 def flatten(l):
 	return [item for sublist in l for item in sublist]
@@ -339,7 +342,7 @@ def collapse(a,c):
 		score = float(linea[8].split(':')[-1])
 		if 'Y' not in chrom1 and 'Y' not in chrom2:
 			l.append([chrom1,int(s1),chrom2,int(s2),split,disc,orient,haps,score])
-	r = lmax/100*100*5
+	r = int(lmax/100)*100*5
 	l.sort(key = lambda x: x[-1],reverse=True)
 	l2 = []
 	nas = collections.defaultdict(list)
@@ -347,13 +350,13 @@ def collapse(a,c):
 		already_appended = False
 		for i in [-r,0,r]:
 			for j in [-r,0,r]:
-				if (chrom1,s1/r*r+i,chrom2,s2/r*r+j) in nas:
-					ch1,ds1,ch2,ds2 = nas[(chrom1,s1/r*r+i,chrom2,s2/r*r+j)][0:4]
+				if (chrom1,int(s1/r)*r+i,chrom2,int(s2/r)*r+j) in nas:
+					ch1,ds1,ch2,ds2 = nas[(chrom1,int(s1/r)*r+i,chrom2,int(s2/r)*r+j)][0:4]
 					if abs(ds1-s1) < r and abs(ds2-s2) < r:
 						already_appended = True
 		if not already_appended:
-			nas[(chrom1,s1/r*r,chrom2,s2/r*r)] = [chrom1,s1,chrom2,s2,split,disc,orient,haps,score]
-	for i,elem in nas.iteritems():
+			nas[(chrom1,int(s1/r)*r,chrom2,int(s2/r)*r)] = [chrom1,s1,chrom2,s2,split,disc,orient,haps,score]
+	for i,elem in iteritems(nas):
 		if elem[-1] >= c:
 			l2.append(elem+['PASS'])
 		else:
@@ -365,7 +368,7 @@ def collapse(a,c):
 
 def write_scores(scores):
 	fname = 'NAIBR_SVs.bedpe'
-	print os.path.join(DIR,fname)
+	print(os.path.join(DIR,fname))
 	f = open(os.path.join(DIR,fname),'w')
 	f.write('\t'.join(['Chr1','Break1','Chr2','Break2','Split molecules','Discordant reads',\
 	'Orientation','Haplotype','Score','Pass filter\n']))
@@ -378,7 +381,7 @@ def parallel_execute(function,input_list):
 	if NUM_THREADS != 1:
 		pool = mp.Pool(NUM_THREADS,maxtasksperchild=1)
 		map_fn = pool.map
-		print 'running on %s threads'%str(NUM_THREADS)
+		print('running on %s threads'%str(NUM_THREADS))
 		data = map_fn(function,input_list)
 		pool.close()
 		pool.join()

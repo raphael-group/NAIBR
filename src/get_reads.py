@@ -1,3 +1,5 @@
+from __future__ import print_function,division
+from future.utils import iteritems
 import os,sys,subprocess,pysam,collections,time,gc,json,random,copy
 import multiprocessing as mp
 from utils import *
@@ -29,7 +31,7 @@ def make_barcodeDict(chrom):
 	Returns: dict barcoded reads, dict of reads overlapping ref positions, 
 	discordant reads, candidate NAs, total coverage
 	'''
-	print 'getting candidates for chrom %s'%chrom
+	print('getting candidates for chrom %s'%chrom)
 	cov = 0
 	global discs
 	global reads_by_barcode
@@ -71,11 +73,11 @@ def make_barcodeDict(chrom):
 					if peread.chrm == peread.nextchrm:
 						discs = add_disc(peread,discs)
 					else:
-						interchrom_discs[(peread.chrm,peread.i/r*r,peread.nextchrm,peread.j/r*r,peread.orient)].append(peread)
+						interchrom_discs[(int(peread.chrm,peread.i/r)*r,peread.nextchrm,int(peread.j/r)*r,peread.orient)].append(peread)
 			elif read.is_proper_pair and fragment_length(read) > lmin:
 					reads_by_LR[(peread.chrm,barcode)].append((peread.start,peread.nextend,peread.hap,peread.mapq))
-					if barcode not in LRs_by_pos[(peread.chrm,peread.mid()/R*R)]:
-						LRs_by_pos[(peread.chrm,peread.mid()/R*R)].append(barcode)
+					if barcode not in LRs_by_pos[(peread.chrm,int(peread.mid()/R)*R)]:
+						LRs_by_pos[(peread.chrm,int(peread.mid()/R)*R)].append(barcode)
 	return reads_by_LR,LRs_by_pos,discs_by_barcode,discs,interchrom_discs,cov/float(lengths)
 
 def signi(disc):
@@ -93,10 +95,10 @@ def signj(disc):
 
 def add_disc(peread,discs):
 	r = lmax
-	for a in [-r/2,0,r/2]:
-		for b in [-r/2,0,r/2]:
-			if (a == 0 or (peread.i+a)/r*r != peread.i/r*r) and (b == 0 or (peread.j+b)/r*r != peread.j/r*r):
-				discs[(peread.chrm,(peread.i+a)/r*r,peread.nextchrm,(peread.j+b)/r*r,peread.orient)].append(peread)
+	for a in [int(-r/2),0,int(r/2)]:
+		for b in [int(-r/2),0,int(r/2)]:
+			if (a == 0 or int((peread.i+a)/r)*r != int(peread.i/r)*r) and (b == 0 or int((peread.j+b)/r)*r != int(peread.j/r)*r):
+				discs[(peread.chrm,int((peread.i+a)/r)*r,peread.nextchrm,int((peread.j+b)/r)*r,peread.orient)].append(peread)
 	return discs
 
 def largest_overlap(items):
@@ -111,13 +113,13 @@ def largest_overlap(items):
 			positions_j[pos] += 1
 	i = 0
 	overlap_i = 0
-	for pos,overlap in positions_i.iteritems():
+	for pos,overlap in iteritems(positions_i):
 		if overlap > overlap_i:
 			overlap_i = overlap
 			i = pos
 	j = 0
 	overlap_j = 0
-	for pos,overlap in positions_j.iteritems():
+	for pos,overlap in iteritems(positions_j):
 		if overlap > overlap_j:
 			overlap_j = overlap
 			j = pos
@@ -151,7 +153,7 @@ def get_candidates(discs,reads_by_LR):
 	if p_len == None:
 		return None,None,None
 	num_cands = 0
-	for key,items in discs.iteritems():
+	for key,items in iteritems(discs):
 		orient = key[4]
 		si,ei,sj,ej = disc_intersection(items)
 		if si and sj and len(items) >= MIN_DISCS:
@@ -160,7 +162,7 @@ def get_candidates(discs,reads_by_LR):
 			cand = copy.copy(items[0])
 			cand.i = i
 			cand.j = j
-			barcode_overlaps = barcode_overlap[(cand.chrm,cand.i/d*d,cand.nextchrm,cand.j/d*d)]
+			barcode_overlaps = barcode_overlap[(cand.chrm,int(cand.i/d)*d,cand.nextchrm,int(cand.j/d)*d)]
 			if not inblacklist(cand) and ((cand.chrm == cand.nextchrm and cand.j-cand.i < d)\
 				or barcode_overlaps >= k):
 				already_appended = sum([1 for x in candidates if x.i == cand.i and x.j == cand.j])
@@ -224,8 +226,8 @@ def make_barcodeDict_user(candidate):
 						discs_by_barcode[(peread.chrm,peread.nextchrm,peread.barcode)].append(peread)
 				elif read.is_proper_pair and fragment_length(read) > lmin:
 						reads_by_LR[(peread.chrm,barcode)].append((peread.start,peread.nextend,peread.hap,peread.mapq))
-						if barcode not in LRs_by_pos[(peread.chrm,peread.mid()/R*R)]:
-							LRs_by_pos[(peread.chrm,peread.mid()/R*R)].append(barcode)
+						if barcode not in LRs_by_pos[(peread.chrm,int(peread.mid()/R)*R)]:
+							LRs_by_pos[(peread.chrm,int(peread.mid()/R)*R)].append(barcode)
 	cand = copy.copy(peread)
 	cand.chrm = chrm1.strip('chr')
 	cand.i = break1

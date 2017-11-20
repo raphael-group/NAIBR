@@ -1,4 +1,5 @@
 ### GLOBALS ####
+from __future__ import print_function
 import os,json,sys,collections,pysam
 import numpy as np
 

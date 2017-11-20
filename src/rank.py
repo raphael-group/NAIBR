@@ -1,3 +1,4 @@
+from __future__ import print_function,division
 import os,sys,subprocess,pysam,collections,time,gc,math,json,copy
 import scipy.stats,operator,itertools
 import multiprocessing as mp
@@ -114,10 +115,7 @@ def spanning(x,candidate):
 
 def discs(candidate,barcode):
 	ds = discs_by_barcode[(candidate.chrm,candidate.nextchrm,barcode)]
-	# for d in ds:
-	# 	if d.chrm != d.nextchrm:
-	# 		print d.chrm,d.nextchrm,d.i,d.j
-	ds = [(read.mapq+read.nextmapq)/2 for read in ds if \
+	ds = [int((read.mapq+read.nextmapq)/2) for read in ds if \
 	candidate.chrm == read.chrm and candidate.nextchrm == read.nextchrm\
 	and is_close(candidate.i,read.i,read.orient[0]) and \
 	    is_close(candidate.j,read.j,read.orient[1]) and candidate.orient == read.orient]
@@ -182,10 +180,10 @@ def get_LRs(candidate,barcodes):
 
 def get_CSMs(i):
 	candidate = candidates[i]
-	break1_barcodes = set(LRs_by_pos[(candidate.chrm,candidate.i/R*R)]+\
-		LRs_by_pos[(candidate.chrm,candidate.i/R*R-R)]+LRs_by_pos[(candidate.chrm,candidate.i/R*R+R)])
-	break2_barcodes = set(list(LRs_by_pos[(candidate.nextchrm,candidate.j/R*R)])+\
-		LRs_by_pos[(candidate.nextchrm,candidate.j/R*R-R)]+LRs_by_pos[(candidate.nextchrm,candidate.j/R*R+R)])
+	break1_barcodes = set(LRs_by_pos[(candidate.chrm,int(candidate.i/R)*R)]+\
+		LRs_by_pos[(candidate.chrm,int(candidate.i/R)*R-R)]+LRs_by_pos[(candidate.chrm,int(candidate.i/R)*R+R)])
+	break2_barcodes = set(list(LRs_by_pos[(candidate.nextchrm,int(candidate.j/R)*R)])+\
+		LRs_by_pos[(candidate.nextchrm,int(candidate.j/R)*R-R)]+LRs_by_pos[(candidate.nextchrm,int(candidate.j/R)*R+R)])
 	CSMs,spans = get_LRs(candidate,break1_barcodes.intersection(break2_barcodes))
 	key = (candidate.i,candidate.j,candidate.orient)
 	return key,CSMs,spans
