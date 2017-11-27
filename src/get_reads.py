@@ -61,8 +61,8 @@ def make_barcodeDict(chrom):
 	for read in iterator:
 		cov += read.query_alignment_length
 		## DEBUG
-		# if cov > 5000000000:
-		# 	break
+		if cov > 50000000:
+			break
 		if pass_checks(read):
 			barcode = get_barcode(read)
 			peread = PERead(read)
@@ -73,7 +73,7 @@ def make_barcodeDict(chrom):
 					if peread.chrm == peread.nextchrm:
 						discs = add_disc(peread,discs)
 					else:
-						interchrom_discs[(int(peread.chrm,peread.i/r)*r,peread.nextchrm,int(peread.j/r)*r,peread.orient)].append(peread)
+						interchrom_discs[(peread.chrm,int(peread.i/r)*r,peread.nextchrm,int(peread.j/r)*r,peread.orient)].append(peread)
 			elif read.is_proper_pair and fragment_length(read) > lmin:
 					reads_by_LR[(peread.chrm,barcode)].append((peread.start,peread.nextend,peread.hap,peread.mapq))
 					if barcode not in LRs_by_pos[(peread.chrm,int(peread.mid()/R)*R)]:
