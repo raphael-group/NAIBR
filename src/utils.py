@@ -24,7 +24,7 @@ class NA:
 		best_score = -float('inf')
 		best_haps = (0,0)
 		total = 0
-		for hap in self.score.keys():
+		for hap in list(self.score):
 			s = self.score[hap]
 			d = self.disc[hap]
 			if self.pairs[hap] > self.spans[hap]:
@@ -78,6 +78,9 @@ class NA:
 			self.spans = spans
 		else:
 			self.score = best_score
+			self.disc = 0
+			self.pairs = 0
+			self.spans =  0
 
 class LinkedRead:
 	__slots__ = ['barcode', 'chrm','start','disc','end','hap','num']

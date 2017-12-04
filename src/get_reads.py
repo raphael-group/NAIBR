@@ -61,7 +61,7 @@ def make_barcodeDict(chrom):
 	for read in iterator:
 		cov += read.query_alignment_length
 		## DEBUG
-		# if cov > 50000000:
+		# if DEBUG and cov > 100000000:
 		# 	break
 		if pass_checks(read):
 			barcode = get_barcode(read)

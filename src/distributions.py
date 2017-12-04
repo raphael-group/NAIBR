@@ -28,20 +28,29 @@ class negBin(object):
 		p = par[0]
 		r = par[1]
 		n = len(data)
-		f0 = sm/(r+sm)-p
-		f1 = np.sum(special.psi(data+r)) - n*special.psi(r) + n*np.log(r/(r+sm))
+		try:
+			f0 = sm/float(r+sm)-p
+		except ValueError:
+			print("r+sm=0")
+			print(data)
+		f1 = np.sum(special.psi(data+r)) - n*special.psi(r) + n*np.log(r/float(r+sm))
 		return np.array([f0, f1])
 
 	def fit(self, data, p = None, r = None):
 		if p is None or r is None:
 			av = np.average(data)
 			va = np.var(data)
-			r = (av*av)/(va-av)
-			p = (va-av)/(va)
+			r = (av*av)/float(va-av)
+			p = (va-av)/float(va)
 		sm = np.sum(data)/(len(data))
+		if DEBUG:
+			print(av,va,r,p,sm)
+		if False and not va or not (va-av) or not (r+sm):
+			return 0
 		x = optimize.fsolve(self.mleFun, np.array([p, r]), args=(data, sm))
 		self.p = x[0]
 		self.r = x[1]
+		return 1
 
 	def pdf(self, k):
 		return self.nbin(k, self.p, self.r)
@@ -124,7 +133,8 @@ def get_length_distr(LRs):
 	if len(lengths) > 10:
 		lengths = lengths[int(len(lengths)/10):int(len(lengths)/10*9)]
 	b = negBin()
-	b.fit(lengths)
+	if not b.fit(lengths):
+		return None
 	p = b.pdf
 	pp = lambda x: max(1e-20,float(p([x])[0]))
 	## poisson distribution

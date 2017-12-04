@@ -40,6 +40,10 @@ if 'bam_file' in constants:
 else:
 	raise ValueError('Please add input Bam file to config file')
 
+if 'DEBUG' in constants:
+	DEBUG = constants['DEBUG']
+else:
+	DEBUG = False
 
 if 'outdir' in constants:
 	DIR=constants['outdir']
