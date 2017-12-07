@@ -97,7 +97,7 @@ def estimate_lmin_lmax():
 	std_dist = np.std(ls)
 	lmin = max(-int(np.mean(length)),int(mean_dist-std_dist*SD_MULT))
 	lmax = int(mean_dist+std_dist*SD_MULT)
-	return lmin,lmax
+	return lmin,max(100,lmax)
 
 lmin,lmax = estimate_lmin_lmax()
 
@@ -105,7 +105,7 @@ lmin,lmax = estimate_lmin_lmax()
 if 'min_sv' in constants:
 	min_sv = int(constants['min_sv'])
 else:
-	min_sv = lmax
+	min_sv = 2*lmax
 
 if 'min_len' in constants:
 	min_len = int(constants['min_len'])

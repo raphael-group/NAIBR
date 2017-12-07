@@ -16,6 +16,7 @@ import scipy.optimize as optimize
 import numpy as np
 import mpmath
 
+
 class negBin(object):
 	def __init__(self, p = 0.1, r = 10):
 		nbin_mpmath = lambda k, p, r: mpmath.gamma(k + r)/(mpmath.gamma(k+1)\
@@ -23,37 +24,30 @@ class negBin(object):
 		self.nbin = np.frompyfunc(nbin_mpmath, 3, 1)
 		self.p = p
 		self.r = r
-
+ 
 	def mleFun(self, par, data, sm):
 		p = par[0]
 		r = par[1]
 		n = len(data)
-		try:
-			f0 = sm/float(r+sm)-p
-		except ValueError:
-			print("r+sm=0")
-			print(data)
-		f1 = np.sum(special.psi(data+r)) - n*special.psi(r) + n*np.log(r/float(r+sm))
+		f0 = sm/(r+sm)-p
+		f1 = np.sum(special.psi(data+r)) - n*special.psi(r) + n*np.log(r/(r+sm))
 		return np.array([f0, f1])
-
+ 
 	def fit(self, data, p = None, r = None):
 		if p is None or r is None:
 			av = np.average(data)
 			va = np.var(data)
-			r = (av*av)/float(va-av)
-			p = (va-av)/float(va)
-		sm = np.sum(data)/(len(data))
-		if DEBUG:
-			print(av,va,r,p,sm)
-		if False and not va or not (va-av) or not (r+sm):
-			return 0
+			r = (av*av)/(va-av)
+			p = (va-av)/(va)
+		sm = np.sum(data)/len(data)
 		x = optimize.fsolve(self.mleFun, np.array([p, r]), args=(data, sm))
 		self.p = x[0]
 		self.r = x[1]
-		return 1
-
+ 
 	def pdf(self, k):
-		return self.nbin(k, self.p, self.r)
+		return self.nbin(k, self.p, self.r).astype('float64')
+
+
 
 def plot_distribution(p,distr,xlab,ylab,title):
 	fname = '_'.join(title.split(' '))
@@ -119,10 +113,8 @@ def get_distributions(reads_by_LR):
 	for barcode,barcode_LRS in iteritems(LRs_by_barcode):
 		if len(barcode_LRS) > 1:
 			get_overlap(barcode_LRS)
-	if len(LRs) == 0:
+	if len(LRs) < 100:
 		return None,None,None
-	elif len(LRs) < 100:
-		print('WARNING: Few linked-reads detected')
 	p_rate = get_rate_distr(LRs)
 	p_len = get_length_distr(LRs)	
 	return p_len,p_rate,barcode_overlap
@@ -130,11 +122,10 @@ def get_distributions(reads_by_LR):
 def get_length_distr(LRs):
 	lengths = [x[2]-x[1] for x in LRs]
 	lengths.sort()
-	if len(lengths) > 10:
-		lengths = lengths[int(len(lengths)/10):int(len(lengths)/10*9)]
+	assert len(lengths)>100
+	assert np.var(lengths) != 0
 	b = negBin()
-	if not b.fit(lengths):
-		return None
+	b.fit(lengths)
 	p = b.pdf
 	pp = lambda x: max(1e-20,float(p([x])[0]))
 	## poisson distribution

@@ -61,8 +61,8 @@ def make_barcodeDict(chrom):
 	for read in iterator:
 		cov += read.query_alignment_length
 		## DEBUG
-		# if DEBUG and cov > 100000000:
-		# 	break
+		if DEBUG and cov > 100000000:
+			break
 		if pass_checks(read):
 			barcode = get_barcode(read)
 			peread = PERead(read)
@@ -150,7 +150,7 @@ def get_candidates(discs,reads_by_LR):
 	candidates = []
 	r = lmax
 	p_len,p_rate,barcode_overlap = get_distributions(reads_by_LR)
-	if p_len == None:
+	if p_len == None or p_rate == None:
 		return None,None,None
 	num_cands = 0
 	for key,items in iteritems(discs):
