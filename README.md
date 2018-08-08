@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/evanbiederstedt/NAIBR.svg?branch=master)](https://travis-ci.org/evanbiederstedt/NAIBR)
+
 ## Overview
 
 NAIBR (Novel Adjacency Identification with Barcoded Reads) identifies novel adjacencies created by structural variation events such as deletions, duplications, inversions, and complex rearrangements using linked-read whole-genome sequencing data produced by 10X Genomics. Please refer to the [publication](https://doi.org/10.1093/bioinformatics/btx712) for details about the method.
