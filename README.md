@@ -10,7 +10,7 @@ NAIBR takes as in put a BAM file produced by 10X Genomic's Long Ranger pipeline 
 git clone https://github.com/raphael-group/NAIBR.git
 ```
 
-NAIBR is written in python 2.7 and requires the following dependencies: pysam, numpy, scipy, subprocess, and matplotlib
+NAIBR is written in python 2.7 and requires the following dependencies: pysam, numpy, scipy, and matplotlib
 
 ## Running NAIBR
 
