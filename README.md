@@ -12,6 +12,12 @@ git clone https://github.com/raphael-group/NAIBR.git
 
 NAIBR is written in python 2.7 and requires the following dependencies: pysam, numpy, scipy, and matplotlib
 
+In order to install all dependencies, please execute the following command via `pip`
+
+```
+pip install -r requirements.txt
+```
+
 ## Running NAIBR
 
 NAIBR can be run using the following command:
