@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/evanbiederstedt/NAIBR.svg?branch=master)](https://travis-ci.org/evanbiederstedt/NAIBR)
+
 ## Overview
 
 NAIBR (Novel Adjacency Identification with Barcoded Reads) identifies novel adjacencies created by structural variation events such as deletions, duplications, inversions, and complex rearrangements using linked-read whole-genome sequencing data produced by 10X Genomics. Please refer to the [publication](https://doi.org/10.1093/bioinformatics/btx712) for details about the method.
@@ -10,7 +12,13 @@ NAIBR takes as in put a BAM file produced by 10X Genomic's Long Ranger pipeline 
 git clone https://github.com/raphael-group/NAIBR.git
 ```
 
-NAIBR is written in python 2.7 and requires the following dependencies: pysam, numpy, scipy, subprocess, and matplotlib
+NAIBR is written in python 2.7 and requires the following dependencies: pysam, numpy, scipy, and matplotlib
+
+In order to install all dependencies, please execute the following command via `pip`
+
+```
+pip install -r requirements.txt
+```
 
 ## Running NAIBR
 
