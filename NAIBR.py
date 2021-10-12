@@ -15,6 +15,8 @@ def run_NAIBR_user(cand):
 	'''
 	use user input candidate novel adjacencies
 	'''
+
+
 	scores = 0
 	reads_by_LR,LRs_by_pos,discs_by_barcode,cands,coverage = make_barcodeDict_user(cand)
 	p_len,p_rate,overlap = get_distributions(reads_by_LR)
@@ -43,16 +45,20 @@ def run_NAIBR(chrom):
 def main():
 	starttime = time.time()
 	if len(candidates) > 0:
+
 		print('user defined candidates')
 		with open(candidates) as f:
 			cands = f.read().split('\n')
 			cands = [x.split('\t') for x in cands]
 			cands = [x for x in cands if x]
 			cands = [[x[0],int(x[1]),x[3],int(x[4]),x[-1]] for x in cands if len(x) >= 4]
+
 		scores = flatten(parallel_execute(run_NAIBR_user,cands))
+		
 		write_scores(scores)
 
 	else:
+
 		reads = pysam.AlignmentFile(BAM_FILE,"rb")
 		chroms = reads.references
 		chroms = [x for x in chroms if is_proper_chrom(x)]
@@ -78,8 +84,6 @@ def main():
 		else:
 			print('No interchromosomal candidates')
 		write_scores(scores)
-
-
 
 	print('Finished in',(time.time()-starttime)/60.0,'minutes')
 	return

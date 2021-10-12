@@ -7,13 +7,12 @@ import numpy as np
 from global_vars import *
 import linecache
 
-
-
-
-
-
 class CandSplitMol:
-	__slots__ = ['scoreHA','scoreH0','hap_i','hap_j','discs']
+	"""
+	pijus: adding barcode_i and barcode_j. Discordant reads should be stored in D, it's emtpy in the example available with NAIBR
+
+	"""
+	__slots__ = ['scoreHA','scoreH0','hap_i','hap_j','discs', 'bardcode_i', 'bardcode_j']
 	def __init__(self):
 		self.scoreHA = 0
 		self.scoreH0 = 0
@@ -21,11 +20,29 @@ class CandSplitMol:
 		self.hap_j = 0
 		self.discs = 0
 
+		self.bardcode_i = 0 
+		self.bardcode_j = 0
+
+
 	def score_CSM(self,CSM,candScore):
+		"""
+		pijus: added barcode_i and barcode_j to the object.
+		as far as I understand they are supposed to be equal.
+		"""
 		LRs_i,D,LRs_j = CSM
+
+
 		#chrm,start,end,num,hap,barcode
 		chrm_i,si,ei,mapq_i,hap_i,barcode_i = LRs_i
 		chrm_j,sj,ej,mapq_j,hap_j,barcode_j = LRs_j
+
+		self.bardcode_i = barcode_i 
+		self.bardcode_j = barcode_j
+		#pijus: sanity check to see if the barcodes of the split molecule are equal
+		if barcode_j != barcode_i:
+			sys.exit("ERROR: unequal i and j barcodes of a candidate split molecule", barcode_i, barcode_j)
+
+
 		num_i,num_j = len(mapq_i),len(mapq_j)
 		hap_i = max(hap_i)
 		hap_j = max(hap_j)
@@ -58,8 +75,12 @@ class CandSplitMol:
 		self.hap_j = hap_j
 		self.discs = len(D)
 		candScore.score[(hap_i,hap_j)] += self.scoreHA-self.scoreH0
+		#pijus: candScore.pairs stores the number of split molecules
 		candScore.pairs[(hap_i,hap_j)] += 1
 		candScore.disc[(hap_i,hap_j)] += self.discs
+
+		#pijus:adding barcodes to CSM
+		candScore.barcodes[(hap_i,hap_j)].append(barcode_i) 
 
 	def map_prob(self,mapqs):
 		prob = 1
@@ -76,6 +97,7 @@ class CandSplitMol:
 def score_pair(i):
 	key,CSMs,spans = get_CSMs(i)
 	candidate = candidates[i]
+
 	#CSMs,spans = CSMs_by_cand[(candidate.i,candidate.j,candidate.orient)]
 	candScore = NA(candidate.chrm,candidate.nextchrm,candidate.i,candidate.j,candidate.orient)
 	scoreHA = 0
@@ -86,6 +108,10 @@ def score_pair(i):
 		c.score_CSM(CSM,candScore)
 	for hap in spans:
 		candScore.spans[hap] += 1
+
+	#for i in candScore.pairs:
+	#	print(i, candScore.pairs[i])
+
 	return candScore,candidate
 
 
@@ -172,6 +198,8 @@ def get_LRs(candidate,barcodes):
 
 		if LRs_i and LRs_j and LRs_i[1] < LRs_j[1]:
 			D = discs(candidate,barcode)
+
+
 			CSM = [LRs_i,D,LRs_j]
 			CSMs.append(CSM)		
 		spans += span
@@ -185,6 +213,9 @@ def get_CSMs(i):
 	break2_barcodes = set(list(LRs_by_pos[(candidate.nextchrm,int(candidate.j/R)*R)])+\
 		LRs_by_pos[(candidate.nextchrm,int(candidate.j/R)*R-R)]+LRs_by_pos[(candidate.nextchrm,int(candidate.j/R)*R+R)])
 	CSMs,spans = get_LRs(candidate,break1_barcodes.intersection(break2_barcodes))
+
+	
+
 	key = (candidate.i,candidate.j,candidate.orient)
 	return key,CSMs,spans
 
@@ -212,6 +243,10 @@ def get_all_CSMs():
 
 
 def get_cand_score(cands):
+	"""
+	pijus: added barcodes to "ret",
+
+	"""
 	global candidates
 	candidates = cands
 
@@ -227,17 +262,22 @@ def get_cand_score(cands):
 
 	rets = []
 	for best,candidate in scores:
+	#pijus: best.barcodes should contain the barcodes of the split_mols at this point.
 		best.get_score()
 		if best.pairs > 0 and best.score > -float('inf'):
+
+			#pijus: sanity check to see if the number of split molecules and barcodes is equal
+			if best.pairs != len(best.barcodes):  
+				sys.exit("ERROR: a discrepancy between the number of split molecules {} and the number of barcodes for these molecules {}".format(best.pairs, len(best.barcodes)))
+
+			#pijus" constructing output line
 			ret = [best.chrm1,best.break1,best.chrm2,best.break2]+['split_mols:'+str(best.pairs)]+['discordants:'+str(best.disc)]+\
-			['orient:'+candidate.orient,'haps:'+str(best.haps[0])+','+str(best.haps[1]),'score:'+str(best.score)]
+			['orient:'+candidate.orient,'haps:'+str(best.haps[0])+','+str(best.haps[1]),'score:'+str(best.score),'barcodes:'+';'.join(best.barcodes)]
 			rets.append(ret)
+
+
+
 	return rets
-
-
-
-
-
 
 def predict_NAs(reads_by_lr,lrs_by_pos,Discs_by_barcode,candidates,p_len,p_rate,cov,interchrom):
 	global lmax,plen,prate,discs_by_barcode,LRs_by_pos,chrom_idx,is_interchrom
@@ -249,8 +289,13 @@ def predict_NAs(reads_by_lr,lrs_by_pos,Discs_by_barcode,candidates,p_len,p_rate,
 	scores = []
 
 	scores += get_cand_score(candidates)
+
+
 	scores = [x for x in scores if x]
+
 	scores = collapse(scores,threshold(cov))
+
+
 	return scores
 
 

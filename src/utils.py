@@ -7,8 +7,14 @@ import linecache
 import scipy.stats,collections
 import multiprocessing as mp
 
+
 class NA:
-	__slots__ = ['score','chrm1','break1','chrm2','break2','orient','haps','disc','pairs','spans']
+	"""
+	pijus: added self.barcodes
+
+	"""
+
+	__slots__ = ['score','chrm1','break1','chrm2','break2','orient','haps','disc','pairs','spans', 'barcodes']
 	def __init__(self,chrm1,chrm2,indi,indj,orient):
 		self.score = collections.defaultdict(int)
 		self.chrm1 = chrm1
@@ -20,7 +26,16 @@ class NA:
 		self.spans = collections.defaultdict(int)
 		self.disc = collections.defaultdict(int)
 		self.pairs = collections.defaultdict(int)
+
+		#barcodes 
+		self.barcodes = collections.defaultdict(list)
+
 	def get_score(self):
+		"""
+		pijus: the input barcodes are dictionaries, but those that leave are the listst. 
+
+		"""
+
 		best_score = -float('inf')
 		best_haps = (0,0)
 		total = 0
@@ -44,6 +59,11 @@ class NA:
 		pairs = sum([self.pairs[x] for x in self.pairs.keys()])
 		spans = sum([self.spans[x] for x in self.spans.keys()])
 		discs = sum([self.disc[x] for x in self.disc.keys()])
+
+		barcodes = []
+		for key in self.barcodes:
+			barcodes += self.barcodes[key]
+	
 		if best_score > -float('inf') and total > best_score and pairs >= spans and\
 		((self.score[(1,1)] > 0 and self.score[(2,2)] > 0) or (self.score[(1,2)] > 0 and self.score[(2,1)] > 0)):
 			self.haps = (3,3)
@@ -51,36 +71,48 @@ class NA:
 			self.disc = discs
 			self.pairs = pairs
 			self.spans = spans
+			self.barcodes = barcodes
 		elif best_score > -float('inf'):
 			self.haps = best_haps
 			score = self.score[best_haps]
 			discs = self.disc[best_haps]
 			pairs = self.pairs[best_haps]
 			spans = self.spans[best_haps]
+			barcodes = self.barcodes[best_haps]
 			if best_haps[0] != 0 and self.score[(0,best_haps[1])] > 0:
 				score += self.score[(0,best_haps[1])]
 				discs += self.disc[(0,best_haps[1])]
 				pairs += self.pairs[(0,best_haps[1])]
 				spans += self.spans[(0,best_haps[1])]
+				barcodes += self.barcodes[(0,best_haps[1])]
+
 			if best_haps[1] != 0 and self.score[(best_haps[0],0)] > 0:
 				score += self.score[(best_haps[0],0)]
 				discs += self.disc[(best_haps[0],0)]
 				pairs += self.pairs[(best_haps[0],0)]
 				spans += self.spans[(best_haps[0],0)]
+				barcodes += self.barcodes[(best_haps[0],0)]
+
 			if best_haps[1] != 0  and best_haps[0] != 0 and self.score[(0,0)] > 0:
 				score += self.score[(0,0)]
 				discs += self.disc[(0,0)]
 				pairs += self.pairs[(0,0)]
 				spans += self.spans[(0,0)]
+				barcodes += self.barcodes[(0,0)]
+
+
 			self.score = score
 			self.disc = discs
 			self.pairs = pairs
 			self.spans = spans
+			self.barcodes = barcodes
 		else:
 			self.score = best_score
 			self.disc = 0
 			self.pairs = 0
 			self.spans =  0
+			self.barcodes = []
+
 
 class LinkedRead:
 	__slots__ = ['barcode', 'chrm','start','disc','end','hap','num']
@@ -326,6 +358,11 @@ def fragment_length(read):
 	-min(read.reference_start,read.next_reference_start)
 
 def collapse(a,c):
+	"""
+	pijus: added barcodes in the last column. 
+	here the input (CSM?) are sorted and the duplicates seem to be removed.
+
+	"""
 	l = []
 	hom = 0
 	for linea in a:
@@ -343,13 +380,16 @@ def collapse(a,c):
 		orient = linea[6].split(':')[-1]
 		haps = linea[7].split(':')[-1]
 		score = float(linea[8].split(':')[-1])
+
+		barcodes = linea[9].split(':')[-1]
+
 		if 'Y' not in chrom1 and 'Y' not in chrom2:
-			l.append([chrom1,int(s1),chrom2,int(s2),split,disc,orient,haps,score])
+			l.append([chrom1,int(s1),chrom2,int(s2),split,disc,orient,haps,score,barcodes])
 	r = int(lmax/100)*100*5
 	l.sort(key = lambda x: x[-1],reverse=True)
 	l2 = []
 	nas = collections.defaultdict(list)
-	for chrom1,s1,chrom2,s2,split,disc,orient,haps,score in l:
+	for chrom1,s1,chrom2,s2,split,disc,orient,haps,score,barcodes in l:
 		already_appended = False
 		for i in [-r,0,r]:
 			for j in [-r,0,r]:
@@ -358,23 +398,28 @@ def collapse(a,c):
 					if abs(ds1-s1) < r and abs(ds2-s2) < r:
 						already_appended = True
 		if not already_appended:
-			nas[(chrom1,int(s1/r)*r,chrom2,int(s2/r)*r)] = [chrom1,s1,chrom2,s2,split,disc,orient,haps,score]
+			nas[(chrom1,int(s1/r)*r,chrom2,int(s2/r)*r)] = [chrom1,s1,chrom2,s2,split,disc,orient,haps,score,barcodes]
 	for i,elem in iteritems(nas):
-		if elem[-1] >= c:
-			l2.append(elem+['PASS'])
+		if elem[-2] >= c:
+			l2.append(elem[:-1]+['PASS']+elem[-1:])
 		else:
-			l2.append(elem+['FAIL'])
+			l2.append(elem[:-1]+['FAIL']+elem[-1:])
 	l2.sort(key = lambda x: (x[-2]),reverse=True)
 	l2 = ['\t'.join([str(y) for y in x])+'\n' for x in l2]
+
 	return l2
 
 
 def write_scores(scores):
+	"""
+	pijus: added "Pass" and "Barcodes" headers
+	
+	"""
 	fname = 'NAIBR_SVs.bedpe'
 	print(os.path.join(DIR,fname))
 	f = open(os.path.join(DIR,fname),'w')
 	f.write('\t'.join(['Chr1','Break1','Chr2','Break2','Split molecules','Discordant reads',\
-	'Orientation','Haplotype','Score','Pass filter\n']))
+	'Orientation','Haplotype','Score','Pass filter','Pass','Barcodes','\n']))
 	for result in scores:
 		f.write(result)
 	f.close()

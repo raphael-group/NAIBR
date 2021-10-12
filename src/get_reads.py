@@ -179,6 +179,8 @@ def make_barcodeDict_user(candidate):
 	Returns: dict barcoded reads, dict of reads overlapping ref positions, 
 	discordant reads, total coverage
 	'''
+
+
 	w = max_len-d
 	cov = 0
 	global discs
@@ -228,6 +230,7 @@ def make_barcodeDict_user(candidate):
 						reads_by_LR[(peread.chrm,barcode)].append((peread.start,peread.nextend,peread.hap,peread.mapq))
 						if barcode not in LRs_by_pos[(peread.chrm,int(peread.mid()/R)*R)]:
 							LRs_by_pos[(peread.chrm,int(peread.mid()/R)*R)].append(barcode)
+
 	cand = copy.copy(peread)
 	cand.chrm = chrm1.strip('chr')
 	cand.i = break1
