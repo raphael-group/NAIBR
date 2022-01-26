@@ -77,6 +77,9 @@ def estimate_lmin_lmax():
 	num = 0
 	for i,chrm in enumerate(reads.references):
 		for read in reads.fetch(chrm):
+			if read.is_unmapped or read.mate_is_unmapped:
+				continue
+
 			num += 1
 			if num > 1000000:
 				break
@@ -84,10 +87,8 @@ def estimate_lmin_lmax():
 				if read.reference_start > mate_pairs[read.query_name][0]:
 					dist = read.reference_start-mate_pairs[read.query_name][1]
 				else:
-					try:
-						dist = mate_pairs[read.query_name][0]-read.reference_end
-					except:
-						pass
+					dist = mate_pairs[read.query_name][0]-read.reference_end
+
 				if abs(dist) < 2000:
 					length.append(read.query_length)
 					ls.append(dist)

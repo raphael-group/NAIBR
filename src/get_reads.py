@@ -53,7 +53,6 @@ def make_barcodeDict(chrom):
 	disc_mate_pairs = dict()
 	split_reads = collections.defaultdict(list)
 	LRs_by_pos = collections.defaultdict(list)
-	lengths = sum(reads.lengths)
 	iterator = reads.fetch(chrom)
 	starttime = time.time()
 	prevtime = starttime
