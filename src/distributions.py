@@ -122,7 +122,7 @@ def get_distributions(reads_by_LR):
 def get_length_distr(LRs):
 	lengths = [x[2]-x[1] for x in LRs]
 	lengths.sort()
-	assert len(lengths)>100
+	assert len(lengths) >= 100
 	assert np.var(lengths) != 0
 	b = negBin()
 	b.fit(lengths)
